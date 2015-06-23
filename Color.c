@@ -4,9 +4,9 @@
 
 // struct for rgb colours
 typedef struct RGBColor {
-	float R;
-	float G;
-	float B;
+	int R;
+	int G;
+	int B;
 } RGB;
 
 // struct for ycc colours
@@ -36,25 +36,74 @@ void convertRGBToYCC(RGB rgb, YCC *ycc) {
 
 }
 
+int convertToFixedPoint(int i) {
+	int result = i << 14;	
+	return result;
+}
+
+int convertFloatToInt(float f) {
+	int result = (f / 4) * 65536;
+	return result;
+}
+
+int convertToInt(int f) {
+	
+	int result = f >> 14;
+	return result;
+}
+
+void convertYCCToRGB(RGB *rgb, const YCC ycc) {
+	
+	const int tempY  = 19070 * (ycc.Y - 16);
+	const int tempCr = (ycc.Cr - 128);
+	const int tempCb = (ycc.Cb - 128);
+
+	rgb->R = convertToInt(tempY + 26148 * tempCr);
+	rgb->G = convertToInt(tempY - 13320 * tempCr - 6406 * tempCb);
+	rgb->B = convertToInt(tempY + 33062 * tempCb);
+	
+}
+
 int main(int argc, char** argv) {
 
 	RGB rgb;
-	rgb.R = 2.0f;
+/*	rgb.R = 2.0f;
 	rgb.G = 3.0f;
 	rgb.B = 5.0f;
-
+*/
 	YCC ycc;
-	ycc.Y  = 3;
-	ycc.Cb = 4;
-	ycc.Cr = 1;
-
+	ycc.Y  = 160;
+	ycc.Cb = 104;
+	ycc.Cr = 182;
+/*
 	printColorRGB(rgb);	
 	printColorYCC(ycc);
 
 	convertRGBToYCC(rgb, &ycc);
 	printColorRGB(rgb);	
 	printColorYCC(ycc);
-		
+*/
+
+
+	
+	
+//	printColorRGB(rgb);
+	//printColorYCC(ycc);
+	convertYCCToRGB(&rgb, ycc);
+	printColorRGB(rgb);
+//	printColorYCC(ycc);
+
+	//int temp = convertToFixedPoint(2);
+//	printf("the result : %d \n", temp);
+//	printf("the result : %d \n", convertToInt(temp));
+	//printf("the result : %d \n", convertFloatToInt(1.164));
+/*
+	printf("result 2.018: %d\n", convertFloatToInt(2.018));
+	printf("result 1.164: %d\n", convertFloatToInt(1.164));
+	printf("result 1.596: %d\n", convertFloatToInt(1.596));
+	printf("result 0.813: %d\n", convertFloatToInt(0.813));
+	printf("result 0.391: %d\n", convertFloatToInt(0.391));
+*/
 
 	return 0;
 }
