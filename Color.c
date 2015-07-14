@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define SIZE 4
+
 // struct for rgb colours
 typedef struct RGBColor {
 	int R;
@@ -16,6 +18,24 @@ typedef struct YCCColor {
 	int Cr;
 
 } YCC;
+
+void readFile(char* file_name)
+{
+	
+	FILE* fp;
+	fp = fopen(file_name, "r");
+	if (fp == NULL) {
+		perror("Error opening file\n");
+		exit(1);
+	}
+	
+	char c;
+	while((c = fgetc(fp)) != EOF)
+      		printf("%c", c);
+ 
+	fclose(fp);
+
+}
 
 // print rgb struct
 void printColorRGB(RGB rgb) {
@@ -32,7 +52,6 @@ void convertRGBToYCC(RGB rgb, YCC *ycc) {
 	ycc->Y  = 16.0f  + (65*rgb.R + 129*rgb.G + 25*rgb.B)/256.0f;
 	ycc->Cb = 128.0f + (-38*rgb.R - 74*rgb.G + 112*rgb.B)/256.0f;
 	ycc->Cr = 128.0f + (112*rgb.R - 94*rgb.G - 18*rgb.B)/256.0f;
-	
 
 }
 
@@ -54,57 +73,156 @@ int convertToInt(int f) {
 
 void convertYCCToRGB(RGB *rgb, const YCC ycc) {
 	
-	const int tempY  = 19070 * (ycc.Y - 16);
+	const int tempY  = 19071 * (ycc.Y - 16);
 	const int tempCr = (ycc.Cr - 128);
 	const int tempCb = (ycc.Cb - 128);
 
-	rgb->R = convertToInt(tempY + 26148 * tempCr);
+	rgb->R = convertToInt(tempY + 26149 * tempCr);
 	rgb->G = convertToInt(tempY - 13320 * tempCr - 6406 * tempCb);
-	rgb->B = convertToInt(tempY + 33062 * tempCb);
+	rgb->B = convertToInt(tempY + 33063 * tempCb);
 	
 }
 
-int main(int argc, char** argv) {
+void convertYCCToRGB2(int* r, int* g, int* b, int y, int cr, int cb) {
+	
+	const int tempY  = 19071 * (y - 16);
+	const int tempCr = (cr - 128);
+	const int tempCb = (cb - 128);
 
+	if ((*r = convertToInt(tempY + 26149 * tempCr)) > 255) 
+		*r = 255;
+	if ((*g  = convertToInt(tempY - 13320 * tempCr - 6406 * tempCb)) > 255) 
+		*g = 255;
+	if (*g < 0)
+		*g = 0;
+	if ((*b = convertToInt(tempY + 33063 * tempCb)) > 255)
+		*b = 255;
+ 	if (*b < 0)
+		*b = 0;
+
+}
+
+int main(int argc, char** argv) 
+{
+
+	char c;
+	FILE* fp;
+	char* file_name = "output1.txt";
+
+	fp = fopen(file_name, "r");
+	if (fp == NULL) {
+		perror("Error opening file\n");
+		exit(1);
+	}
+
+	int a, b, d;
+	fscanf(fp, "%d %d %d", &a, &b, &d);
+
+	int size = a*b;
+
+ 	int Y[size], Cb[size], Cr[size];
+	
+	int i;
+	for (i = 0; i < size; i++) {
+		fscanf(fp, "%d ", &Y[i]);
+		//printf("%d ", Y[i]);
+	}
+	//printf("\n");
+
+	for (i = 0; i < size; i++) {
+		fscanf(fp, "%d ", &Cb[i]);
+		//printf("%d ", Cb[i]);
+	}
+	//printf("\n");
+
+	for (i = 0; i < size; i++) {
+		fscanf(fp, "%d ", &Cr[i]);
+		//printf("%d ", Cr[i]);
+	}
+	//printf("%d %d \n", size, d);
+	//printf("\n");
+
+	fclose(fp);
+
+	int R[size];
+	int G[size];
+	int B[size];
+
+	for (i = 0; i < size; ++i) {
+		
+		convertYCCToRGB2(&R[i], &G[i], &B[i], Y[i], Cr[i], Cb[i]);
+	}
+
+	for (i = 0; i < size; i++) {
+
+		printf("YCC : ");
+		printf("%d ", Y[i]);
+		printf("%d ", Cb[i]);
+		printf("%d ", Cr[i]);
+		printf("\n");
+		printf("RGB : ");
+		printf("%d ", R[i]);
+		printf("%d ", G[i]);
+		printf("%d ", B[i]);
+		printf("\n");
+		printf("\n");
+	}
+
+	fp = fopen("rgb_out.txt", "w");
+	if (fp == NULL) {
+		perror("Error opening file\n");
+		exit(1);
+	}
+
+	fprintf(fp, "%d %d %d ",a, b, d);
+	for (i = 0; i < size; ++i) {
+		fprintf(fp, "%d ", R[i]);	
+	}
+	for (i = 0; i < size; ++i) {
+		fprintf(fp, "%d ", G[i]);	
+	}
+	for (i = 0; i < size; ++i) {
+		fprintf(fp, "%d ", B[i]);	
+	}
+	
+	fclose(fp);
+/*
 	RGB rgb;
-/*	rgb.R = 2.0f;
-	rgb.G = 3.0f;
-	rgb.B = 5.0f;
-*/
 	YCC ycc;
-	ycc.Y  = 160;
-	ycc.Cb = 104;
-	ycc.Cr = 182;
-/*
-	printColorRGB(rgb);	
-	printColorYCC(ycc);
 
-	convertRGBToYCC(rgb, &ycc);
-	printColorRGB(rgb);	
-	printColorYCC(ycc);
-*/
+	int Y[SIZE];
+	int Cb[SIZE];
+	int Cr[SIZE];
 
+	int R[SIZE] = {
+		255, 0, 255, 0
+	};
+	int G[SIZE] = {
+		0, 255, 0, 0
+	};
+	int B[SIZE] = {
+		0, 0, 255, 255
+	};
 
+	int i = 0;
+	for (i = 0; i < SIZE; ++i) {
+		rgb.R  = R[i];	
+		rgb.G  = G[i];	
+		rgb.B  = B[i];	
+		
+		convertRGBToYCC(rgb, &ycc);
+		
+		Y[i] = ycc.Y;
+		Cb[i] = ycc.Cb;
+		Cr[i] = ycc.Cr;
+
+		printColorYCC(ycc);	
+		printColorRGB(rgb);
+		printf("\n");
+	}
 	
-	
-//	printColorRGB(rgb);
-	//printColorYCC(ycc);
-	convertYCCToRGB(&rgb, ycc);
-	printColorRGB(rgb);
-//	printColorYCC(ycc);
-
-	//int temp = convertToFixedPoint(2);
-//	printf("the result : %d \n", temp);
-//	printf("the result : %d \n", convertToInt(temp));
-	//printf("the result : %d \n", convertFloatToInt(1.164));
-/*
-	printf("result 2.018: %d\n", convertFloatToInt(2.018));
-	printf("result 1.164: %d\n", convertFloatToInt(1.164));
-	printf("result 1.596: %d\n", convertFloatToInt(1.596));
-	printf("result 0.813: %d\n", convertFloatToInt(0.813));
-	printf("result 0.391: %d\n", convertFloatToInt(0.391));
-*/
-
+	readFile("output1.txt");
+*/	
 	return 0;
 }
 
